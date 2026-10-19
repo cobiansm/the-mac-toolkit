@@ -24,7 +24,8 @@ def _align(img, ref):
     ref_box, ref_top = _figure(ref)
     box, top = _figure(img)
 
-    scale = (ref_top[2] - ref_top[0]) / (top[2] - top[0])
+    # same figure height as the reference (both poses are standing)
+    scale = (ref_box[3] - ref_box[1]) / (box[3] - box[1])
     img = img.resize((round(img.width * scale), round(img.height * scale)), Image.NEAREST)
     box, top = _figure(img)
 
@@ -103,3 +104,5 @@ def make_back_button(cvs, on_click):
 def clear(cvs):
     cvs.delete("all")
     cvs.config(cursor="")
+    for widget in cvs.winfo_children():
+        widget.destroy()

@@ -1,3 +1,4 @@
+import os
 import tkinter
 
 import avatars_config
@@ -104,6 +105,8 @@ def show_folders():
 
 
 root = tkinter.Tk()
+root.title("The Mac Toolkit")
+root.iconbitmap(os.path.join(ui.BASE_DIR, "images", "icon.ico"))
 root.resizable(False, False)
 
 cvs = tkinter.Canvas(root, width=W, height=H, bg="black", highlightthickness=0)
