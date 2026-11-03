@@ -1,8 +1,9 @@
 # The Mac Toolkit
 
-Aplicación de escritorio en Python que reúne tres proyectos: **Bayesian**, **Graphs** y **Semaphores**. Cada proyecto se abre desde un menú tipo inventario de juego.
+Aplicación de escritorio en Python que reúne cinco proyectos: **Bayesian**, **Heuristic**, **Coloring**, **Decision Trees** y **Automata**. Cada proyecto se abre desde un menú tipo inventario de juego.
 
-El primer proyecto implementado, **Bayesian Classifier**, predice si una persona **camina** o **conduce** según su edad y su ingreso, usando un clasificador bayesiano implementado desde cero.
+- **Bayesian Classifier** predice si una persona **camina** o **conduce** según su edad y su ingreso, usando un clasificador bayesiano implementado desde cero.
+- **Heuristic** encuentra la ruta más corta en una cuadrícula con obstáculos usando el algoritmo de Dijkstra, sin heurística o con las heurísticas Manhattan y Euclidiana, y muestra la búsqueda de forma animada.
 
 ![Pantalla de inicio](docs/capturas/01_inicio.png)
 
@@ -17,13 +18,19 @@ El primer proyecto implementado, **Bayesian Classifier**, predice si una persona
   - Evaluación con matriz de confusión y precisión general (**EVALUATE**).
   - Clasificación de una persona escribiendo su edad e ingreso (**CLASSIFY**).
   - Gráfica de dispersión con los límites de los rangos (*bins*).
+- **Proyecto Heuristic:**
+  - Cuadrícula de 5×5 a 20×20 (**SIZE**).
+  - Obstáculos con click o arrastrando el mouse.
+  - Inicio y final colocados con **START** y **END**.
+  - Selección del algoritmo (**HEURISTIC**) y cálculo de la ruta (**CALCULATE**).
+  - Animación de las celdas exploradas y de la ruta encontrada.
 - Ejecutable para Windows que no requiere instalar Python.
 
 ## Capturas
 
-| Proyectos | Bayesian |
-|---|---|
-| ![Proyectos](docs/capturas/04_proyectos.png) | ![Bayesian](docs/capturas/08_bayesian_evaluate.png) |
+| Proyectos | Bayesian | Heuristic |
+|---|---|---|
+| ![Proyectos](docs/capturas/04_proyectos.png) | ![Bayesian](docs/capturas/08_bayesian_evaluate.png) | ![Heuristic](docs/capturas/14_heuristic_resultado.png) |
 
 ## Clasificador bayesiano
 
@@ -54,6 +61,36 @@ La clase predicha es la de mayor probabilidad posterior.
 | **Real Camina** | 3 | 0 |
 | **Real Conduce** | 3 | 14 |
 
+## Búsqueda de rutas (Heuristic)
+
+La cuadrícula se convierte en una matriz donde `True` es un obstáculo. El movimiento es en 4 direcciones (arriba, abajo, izquierda y derecha) y cada paso cuesta 1.
+
+La función `dijkstra` en `heuristic/pathfinding.py` elige en cada paso la celda con menor prioridad:
+
+f(n) = g(n) + h(n)
+
+- **g(n):** costo real desde el inicio hasta la celda.
+- **h(n):** distancia estimada de la celda al final.
+
+| Opción | h(n) |
+|---|---|
+| Dijkstra (none) | 0 |
+| Manhattan | \|x₁ − x₂\| + \|y₁ − y₂\| |
+| Euclidean | √((x₁ − x₂)² + (y₁ − y₂)²) |
+
+Las dos heurísticas son admisibles, es decir, nunca sobreestiman la distancia real. Por eso las tres opciones encuentran la ruta más corta y solo cambia el número de celdas que exploran.
+
+**Resultados** (tiempo promedio de 1000 ejecuciones):
+
+| Mapa | Algoritmo | Nodos explorados | Longitud de la ruta | Tiempo (ms) |
+|---|---|---|---|---|
+| 10×10, un muro | Dijkstra | 88 | 14 | 0.156 |
+| | Manhattan | 51 | 14 | 0.083 |
+| | Euclidean | 63 | 14 | 0.110 |
+| 20×20, dos muros | Dijkstra | 364 | 59 | 0.516 |
+| | Manhattan | 307 | 59 | 0.590 |
+| | Euclidean | 327 | 59 | 0.612 |
+
 ## Uso
 
 ### Opción 1: ejecutable (Windows)
@@ -83,6 +120,7 @@ the-mac-toolkit/
 |-- pages/               una página por proyecto
 |-- bayesian/            preprocesamiento, clasificador y evaluador
 |   `-- data/            dataset CSV
+|-- heuristic/           algoritmo de Dijkstra y heurísticas
 |-- images/              fondos, botones, avatares, íconos
 |-- Colab-Notebooks/     notebook del clasificador
 `-- docs/                capturas y documentación
@@ -93,8 +131,10 @@ the-mac-toolkit/
 | Proyecto | Estado |
 |---|---|
 | Bayesian | Terminado |
-| Graphs | En desarrollo |
-| Semaphores | En desarrollo |
+| Heuristic | Terminado |
+| Coloring | En desarrollo |
+| Decision Trees | En desarrollo |
+| Automata | En desarrollo |
 
 ## Autores
 

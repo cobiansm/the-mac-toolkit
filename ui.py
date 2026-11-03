@@ -5,8 +5,6 @@ from PIL import Image, ImageOps, ImageTk
 
 W, H = 960, 600
 
-FONT_TITLE = ("Arial", 32, "bold")
-FONT_BUTTON = ("Arial", 14, "bold")
 BASE_DIR = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 
 def _open(name):
@@ -24,7 +22,6 @@ def _align(img, ref):
     ref_box, ref_top = _figure(ref)
     box, top = _figure(img)
 
-    # same figure height as the reference (both poses are standing)
     scale = (ref_box[3] - ref_box[1]) / (box[3] - box[1])
     img = img.resize((round(img.width * scale), round(img.height * scale)), Image.NEAREST)
     box, top = _figure(img)

@@ -5,7 +5,7 @@ import avatars_config
 import ui
 from avatar import Avatar, JUMP_FRAMES, load_poses
 from ui import W, H
-from pages import folder1, folder2, folder3
+from pages import bayesian, folder2, folder3, heuristic
 
 F_RATE = 30
 F_INTERVAL = int(1000 / F_RATE)
@@ -18,10 +18,15 @@ project_photos = []
 avatar_photos = {}  
 
 PROJECTS = [
-    ("bayesian", folder1),
-    ("graphs", folder2),
-    ("semaphores", folder3),
+    ("bayesian", bayesian),
+    ("heuristic", heuristic),
+    ("coloring", folder2),
+    ("decision-trees", folder3),
+    ("automata", folder3),
 ]
+
+PROJECT_POS = [(W / 2 - 300, 150), (W / 2, 150), (W / 2 + 300, 150),
+               (W / 2 - 150, 365), (W / 2 + 150, 365)]
 
 avatars = []
 first_home = True
@@ -41,7 +46,7 @@ def init():
             "slot": ui.load_image("slot-{}.png".format(key)),
             "slot_hover": ui.load_image("slot-{}-hover.png".format(key)),
             "btn": ui.load_image("btn-{}.png".format(key)),
-            "btn_hover": ui.load_image("btn-{}.png".format(key), width=270, pixel_art=True),
+            "btn_hover": ui.load_image("btn-{}.png".format(key), width=256, pixel_art=True),
         })
 
     for name, config in avatars_config.AVATARS.items():
@@ -92,13 +97,12 @@ def show_folders():
     avatars.clear()
     cvs.create_image(W / 2, H / 2, image=bg_folders_photo)
 
-    for i, ((key, page), photos) in enumerate(zip(PROJECTS, project_photos)):
-        x = W / 2 + (i - 1) * 300
+    for (key, page), photos, (x, y) in zip(PROJECTS, project_photos, PROJECT_POS):
         open_page = lambda page=page: page.show(cvs, go_back=show_folders)
 
-        ui.make_button(cvs, x, 230, photos["slot"], photos["slot_hover"],
+        ui.make_button(cvs, x, y, photos["slot"], photos["slot_hover"],
                        tag="slot_" + key, on_click=open_page)
-        ui.make_button(cvs, x, 345, photos["btn"], photos["btn_hover"],
+        ui.make_button(cvs, x, y + 95, photos["btn"], photos["btn_hover"],
                        tag="btn_" + key, on_click=open_page)
 
     ui.make_back_button(cvs, show_home)
