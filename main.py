@@ -5,7 +5,7 @@ import avatars_config
 import ui
 from avatar import Avatar, JUMP_FRAMES, load_poses
 from ui import W, H
-from pages import bayesian, folder2, folder3, heuristic
+from pages import bayesian, coloring, folder3, heuristic
 
 F_RATE = 30
 F_INTERVAL = int(1000 / F_RATE)
@@ -20,7 +20,7 @@ avatar_photos = {}
 PROJECTS = [
     ("bayesian", bayesian),
     ("heuristic", heuristic),
-    ("coloring", folder2),
+    ("coloring", coloring),
     ("decision-trees", folder3),
     ("automata", folder3),
 ]
