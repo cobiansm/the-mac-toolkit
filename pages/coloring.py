@@ -14,8 +14,11 @@ BOARD_BOX = (40, 105, 520, 585)
 PANEL_BOX = (550, 105, 930, 585)
 TABS = ["graph", "coloring", "results"]
 
-PALETTE = ["#3d8bff", "#ff2a6a", "#3ddc84", "#ffd75a", "#b06cff",
-           "#ff9a3d", "#3de0e0", "#ff7ad9", "#a8e05a", "#c9b8ff"]
+PALETTE = [("Blue", "#3d8bff"), ("Red", "#ff2a6a"), ("Green", "#3ddc84"), ("Yellow", "#ffd75a"),
+           ("Purple", "#b06cff"), ("Orange", "#ff9a3d"), ("Cyan", "#3de0e0"), ("Pink", "#ff7ad9"),
+           ("Lime", "#a8e05a"), ("Lilac", "#c9b8ff")]
+ALIASES = {"azul": "blue", "rojo": "red", "verde": "green", "amarillo": "yellow", "morado": "purple",
+           "naranja": "orange", "cian": "cyan", "rosa": "pink", "lima": "lime", "lila": "lilac"}
 NODE = "#ffffff"
 EDGE = "#4b3aa8"
 TEXT = "#ebfffa"
@@ -185,9 +188,27 @@ def save_inputs():
         pass
 
 
+def palette():
+    """ k (name, hex) pairs: typed names first (priority order), then the rest of PALETTE """
+    hex_by_name = {name.lower(): color for name, color in PALETTE}
+    chosen, used = [], set()
+    for name in color_text.split():
+        key = ALIASES.get(name.lower(), name.lower())
+        if key in hex_by_name and key not in used:
+            chosen.append((name, hex_by_name[key]))
+            used.add(key)
+    for name, color in PALETTE:
+        if name.lower() not in used:
+            chosen.append((name, color))
+    return chosen[:k]
+
+
 def color_names():
-    names = color_text.split()
-    return names[:k]
+    return [name for name, _ in palette()]
+
+
+def color_hex(index):
+    return palette()[index][1]
 
 
 # ---------- Graph tab ----------
@@ -212,7 +233,7 @@ def build_graph_tab():
 
     colors_entry = tkinter.Entry(cvs, width=34, **ENTRY_STYLE)
     colors_entry.insert(0, color_text)
-    colors_entry.bind("<KeyRelease>", lambda e: (save_inputs(), draw_color_chips()))
+    colors_entry.bind("<KeyRelease>", lambda e: (save_inputs(), draw_color_chips(), reset_coloring()))
     cvs.create_window(px0 + 22, py0 + 302, window=colors_entry, anchor="nw", width=336, tag="view")
 
     status_text(py0 + 400)
@@ -228,7 +249,7 @@ def build_graph_tab():
 def change_k(delta):
     global k
     save_inputs()
-    k = max(1, k + delta)
+    k = min(len(PALETTE), max(1, k + delta))
     update_k_text()
     draw_color_chips()
     reset_coloring()
@@ -241,14 +262,12 @@ def update_k_text():
 def draw_color_chips():
     cvs.delete("chips")
     x0, y0 = PANEL_BOX[0] + 22, PANEL_BOX[1] + 350
-    names = color_names()
-    for i in range(k):
+    for i, (name, color) in enumerate(palette()):
         x, y = x0 + (i % 4) * 85, y0 + (i // 4) * 20
-        cvs.create_rectangle(x, y, x + 12, y + 12, fill=PALETTE[i % len(PALETTE)],
-                             outline=DARK, width=2, tag=("view", "chips"))
-        name = names[i] if i < len(names) else "?"
-        cvs.create_text(x + 18, y + 6, text=name[:8], fill=TEXT if i < len(names) else ERROR,
-                        font=SMALL, anchor="w", tag=("view", "chips"))
+        cvs.create_rectangle(x, y, x + 12, y + 12, fill=color, outline=DARK, width=2,
+                             tag=("view", "chips"))
+        cvs.create_text(x + 18, y + 6, text=name[:8], fill=TEXT, font=SMALL, anchor="w",
+                        tag=("view", "chips"))
 
 
 def on_load_text():
@@ -342,7 +361,7 @@ def paint_nodes():
     if graph is None:
         return
     for v in graph.vertices:
-        color = PALETTE[assigned[v] % len(PALETTE)] if v in assigned else NODE
+        color = color_hex(assigned[v]) if v in assigned else NODE
         failed = v == fail_vertex
         cvs.itemconfig("node_" + v, fill=color, outline=ERROR if failed else DARK,
                        width=6 if failed else 3)
@@ -385,12 +404,9 @@ def build_coloring_tab():
 
 
 def draw_legend(x, y):
-    names = color_names()
-    for i in range(k):
+    for i, (name, color) in enumerate(palette()):
         xx, yy = x + (i % 4) * 85, y + (i // 4) * 20
-        cvs.create_rectangle(xx, yy, xx + 12, yy + 12, fill=PALETTE[i % len(PALETTE)],
-                             outline=DARK, width=2, tag="view")
-        name = names[i] if i < len(names) else "?"
+        cvs.create_rectangle(xx, yy, xx + 12, yy + 12, fill=color, outline=DARK, width=2, tag="view")
         cvs.create_text(xx + 18, yy + 6, text=name[:8], fill=TEXT, font=SMALL, anchor="w", tag="view")
 
 
@@ -413,9 +429,6 @@ def run_coloring():
         set_status("Load a graph in the GRAPH tab first.", ERROR)
         return False
     names = color_names()
-    if len(names) < k:
-        set_status("Write at least {} color names in the GRAPH tab.".format(k), ERROR)
-        return False
     try:
         result = color_graph(graph, algorithm, mode, names)
     except NotImplementedError:
@@ -562,9 +575,6 @@ def on_run_all():
         set_status("Load a graph in the GRAPH tab first.", ERROR)
         return
     names = color_names()
-    if len(names) < k:
-        set_status("Write at least {} color names in the GRAPH tab.".format(k), ERROR)
-        return
     rows = []
     for alg in ALGORITHMS:
         for m in MODES:
