@@ -189,7 +189,7 @@ def save_inputs():
 
 
 def palette():
-    """ k (name, hex) pairs: typed names first (priority order), then the rest of PALETTE """
+    # k (name, hex) pairs: typed names first (priority order), then the rest of PALETTE
     hex_by_name = {name.lower(): color for name, color in PALETTE}
     chosen, used = [], set()
     for name in color_text.split():
@@ -423,7 +423,7 @@ def on_mode_change(name):
 
 
 def run_coloring():
-    """ Returns True when a result is ready to be shown """
+    # returns True when a result is ready to be shown
     global result, step_index
     if graph is None:
         set_status("Load a graph in the GRAPH tab first.", ERROR)
