@@ -1,5 +1,6 @@
 import csv
 import math
+import statistics
 import tkinter
 from tkinter import filedialog
 
@@ -30,6 +31,7 @@ FONT = ("Courier New", 11, "bold")
 SMALL = ("Courier New", 10, "bold")
 
 STEP_MS = 400
+RUNS = 5            # RUN ALL reports the median time of these runs
 DEFAULT_TEXT = "4 4\nA B C D\nA B\nA C\nB C\nB D\n"
 DEFAULT_COLORS = "Blue Red Green Yellow"
 
@@ -553,8 +555,18 @@ def build_results_tab():
 def draw_table():
     cvs.delete("table")
     x0, y0 = BOARD_BOX[0] + 10, BOARD_BOX[1] + 22
+    centers = {}
     for name, dx in COLUMNS:
-        cvs.create_text(x0 + dx, y0, text=name, fill=MUTED, font=FONT, anchor="w", tag=("view", "table"))
+        item = cvs.create_text(x0 + dx, y0, text=name, fill=MUTED, font=FONT, anchor="w", tag=("view", "table"))
+        left, _, right, _ = cvs.bbox(item)
+        centers[name] = (left + right) / 2
+        # the ms title is centered over its values (e.g. 0.021)
+        if name == "ms":
+            sample = cvs.create_text(x0 + dx, y0, text="0.000", font=SMALL, anchor="w")
+            left, _, right, _ = cvs.bbox(sample)
+            cvs.delete(sample)
+            cvs.coords(item, (left + right) / 2, y0)
+            cvs.itemconfig(item, anchor="center")
     cvs.create_line(x0, y0 + 16, BOARD_BOX[2] - 10, y0 + 16, fill="#7864cd", width=2, tag=("view", "table"))
     if not results:
         cvs.create_text((BOARD_BOX[0] + BOARD_BOX[2]) / 2, y0 + 190, text="Press RUN ALL", fill=MUTED,
@@ -565,8 +577,13 @@ def draw_table():
                   row["colors"], row["verifications"], "{:.3f}".format(row["time_ms"])]
         color = TEXT if row["success"] else ERROR
         for (name, dx), value in zip(COLUMNS, values):
-            cvs.create_text(x0 + dx, y, text=str(value), fill=color, font=SMALL, anchor="w",
-                            tag=("view", "table"))
+            # colours and checks are centered under their header
+            if name in ("Colors", "Checks"):
+                cvs.create_text(centers[name], y, text=str(value), fill=color, font=SMALL,
+                                tag=("view", "table"))
+            else:
+                cvs.create_text(x0 + dx, y, text=str(value), fill=color, font=SMALL, anchor="w",
+                                tag=("view", "table"))
 
 
 def on_run_all():
@@ -579,20 +596,25 @@ def on_run_all():
     for alg in ALGORITHMS:
         for m in MODES:
             try:
-                r = color_graph(graph, alg, m, names)
+                runs = [color_graph(graph, alg, m, names) for _ in range(RUNS)]
             except NotImplementedError:
                 set_status("{} is not implemented yet.".format(alg), ERROR)
                 return
             except Exception as e:
                 set_status("Error in {} ({}): {}".format(alg, m, e), ERROR)
                 return
+            # the runs only differ in time, so the rest comes from the first one
+            r = runs[0]
             used = {c for c in r["colors"].values() if c is not None}
             rows.append(dict(algorithm=alg, mode=m, k=k, success=r["success"], colors=len(used),
-                             verifications=r["verifications"], time_ms=r["time_ms"],
-                             fail_vertex=r["fail_vertex"] or ""))
+                             verifications=r["verifications"],
+                             time_ms=statistics.median(x["time_ms"] for x in runs),
+                             fail_vertex=r["fail_vertex"] or "", colored=r["colored"],
+                             mrv_selections=r["mrv_selections"], mrv_ties=r["mrv_ties"],
+                             lcv_evaluations=r["lcv_evaluations"], lcv_ties=r["lcv_ties"]))
     results = rows
     draw_table()
-    set_status("{} runs done with k = {}.".format(len(rows), k), OK)
+    set_status("{} combinations done with k = {} (median of {} runs).".format(len(rows), k, RUNS), OK)
 
 
 def on_export():
